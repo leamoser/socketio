@@ -1,30 +1,12 @@
 import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
 
-// -> open database file
-const db = await open({
-    filename: 'chat.db',
-    driver: sqlite3.Database
-});
-
-// -> create table if not existent
-await db.exec(`
-  CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT,
-      username TEXT
-  );
-`);
 
 // -> initialize app and socket.io
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
-    connectionStateRecovery: {}
-});
+const io = new Server(server);
 
 // -> define public folder for loading assets
 app.use(express.static("public"));
@@ -36,38 +18,9 @@ app.get('/', (req, res) => {
 
 // -> handle on stuff happening when client connected
 io.on('connection', async (socket) => {
-
-    // -> send messages
-    socket.on('chat', async (msg, username) => {
-        let result;
-        try {
-            result = await db.run('INSERT INTO messages (content, username) VALUES (?, ?)', msg, username);
-        } catch (e) {
-            console.error('error on inserting message into database', e)
-            return;
-        }
-        io.emit('chat', msg, username, result.lastID);
+    socket.on('send_chat', async (msg) => {
+        io.emit('display_chat', msg);
     });
-
-    // -> load passed messages
-    if (!socket.recovered) {
-        try {
-            await db.each('SELECT id, content, username FROM messages WHERE id > ?',
-                [socket.handshake.auth.serverOffset || 0],
-                (_err, row) => {
-                    socket.emit('chat', row.content, row.username, row.id);
-                }
-            )
-        } catch (e) {
-            console.error('error on reading old messages from database', e)
-        }
-    }
-
-    // -> handle disconnect
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
-
 });
 
 
