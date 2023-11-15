@@ -8,5 +8,8 @@
     "socket.io": "^4.7.2",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6"
+  },
+  "scripts": {
+    "chat": "node server.js"
   }
 }

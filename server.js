@@ -25,6 +25,8 @@ const io = new Server(server, {
     connectionStateRecovery: {}
 });
 
+app.use(express.static("public"));
+
 app.get('/', (req, res) => {
     res.sendFile(new URL('./index.html', import.meta.url).pathname);
 });
