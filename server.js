@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 
 
-// -> initialize app and socket.io
+// -> initialize express and io
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
@@ -16,9 +16,10 @@ app.get('/', (req, res) => {
     res.sendFile(new URL('./index.html', import.meta.url).pathname);
 });
 
-// -> handle on stuff happening when client connected
+// -> 2. listen if connected and chat message sent
 io.on('connection', async (socket) => {
     socket.on('send_chat', async (msg) => {
+        // -> 3. send event back to frontend
         io.emit('display_chat', msg);
     });
 });

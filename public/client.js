@@ -1,4 +1,4 @@
-// -> handle offset
+// -> initialize socket
 const socket = io();
 
 // -> load dom elements
@@ -6,7 +6,7 @@ const form = document.getElementById('form');
 const input = document.getElementById('input');
 const messages = document.getElementById('messages');
 
-// -> handle sending message
+// -> 1. handle if message sent
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (input.value) {
@@ -15,7 +15,7 @@ form.addEventListener('submit', (e) => {
     }
 });
 
-// -> do something on incoming chat message
+// -> 4. listen if message processed by backend
 socket.on('display_chat', (msg) => {
     const item = document.createElement('li');
     item.innerText = msg;
