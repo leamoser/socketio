@@ -15,13 +15,13 @@ const username = prompt('Enter username', '');
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (input.value) {
-        socket.emit('chat message', input.value, username);
+        socket.emit('chat', input.value, username);
         input.value = '';
     }
 });
 
 // -> do something on incoming chat message
-socket.on('chat message', (msg, username, serverOffset) => {
+socket.on('chat', (msg, username, serverOffset) => {
     const item = document.createElement('li');
     item.innerHTML = `<span class="name">${username}</span>${msg}`;
     messages.appendChild(item);
