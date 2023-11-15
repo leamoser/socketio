@@ -14,7 +14,8 @@ const db = await open({
 await db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT
+      content TEXT,
+      username TEXT
   );
 `);
 
@@ -37,24 +38,24 @@ app.get('/', (req, res) => {
 io.on('connection', async (socket) => {
 
     // -> send messages
-    socket.on('chat message', async (msg) => {
+    socket.on('chat message', async (msg, username) => {
         let result;
         try {
-            result = await db.run('INSERT INTO messages (content) VALUES (?)', msg);
+            result = await db.run('INSERT INTO messages (content, username) VALUES (?, ?)', msg, username);
         } catch (e) {
             console.error('error on inserting message into database', e)
             return;
         }
-        io.emit('chat message', msg, result.lastID);
+        io.emit('chat message', msg, username, result.lastID);
     });
 
     // -> load passed messages
     if (!socket.recovered) {
         try {
-            await db.each('SELECT id, content FROM messages WHERE id > ?',
+            await db.each('SELECT id, content, username FROM messages WHERE id > ?',
                 [socket.handshake.auth.serverOffset || 0],
                 (_err, row) => {
-                    socket.emit('chat message', row.content, row.id);
+                    socket.emit('chat message', row.content, row.username, row.id);
                 }
             )
         } catch (e) {

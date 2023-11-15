@@ -52,3 +52,10 @@ body {
 #messages > li:nth-child(odd) {
     background: #efefef;
 }
+
+#messages > li > span.name {
+    font-style: italic;
+    font-size: 60%;
+    width: 75px;
+    display: inline-block;
+}
