@@ -4,49 +4,52 @@ import { Server } from 'socket.io';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 
-// open the database file
+// -> open database file
 const db = await open({
     filename: 'chat.db',
     driver: sqlite3.Database
 });
 
-// create our 'messages' table (you can ignore the 'client_offset' column for now)
+// -> create table if not existent
 await db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_offset TEXT UNIQUE,
       content TEXT
   );
 `);
 
+// -> initialize app and socket.io
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
     connectionStateRecovery: {}
 });
 
+// -> define public folder for loading assets
 app.use(express.static("public"));
 
+// -> serve app on home
 app.get('/', (req, res) => {
     res.sendFile(new URL('./index.html', import.meta.url).pathname);
 });
 
+// -> handle on stuff happening when client connected
 io.on('connection', async (socket) => {
-    console.log('a user connected');
+
+    // -> send messages
     socket.on('chat message', async (msg) => {
-        console.log('message: ' + msg);
         let result;
         try {
             result = await db.run('INSERT INTO messages (content) VALUES (?)', msg);
         } catch (e) {
-            // TODO handle the failure
+            console.error('error on inserting message into database', e)
             return;
         }
-        // include the offset with the message
         io.emit('chat message', msg, result.lastID);
     });
+
+    // -> load passed messages
     if (!socket.recovered) {
-        // if the connection state recovery was not successful
         try {
             await db.each('SELECT id, content FROM messages WHERE id > ?',
                 [socket.handshake.auth.serverOffset || 0],
@@ -55,14 +58,19 @@ io.on('connection', async (socket) => {
                 }
             )
         } catch (e) {
-            // something went wrong
+            console.error('error on reading old messages from database', e)
         }
     }
+
+    // -> handle disconnect
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
+
 });
 
+
+// -> starting server
 server.listen(3000, () => {
     console.log('server running at http://localhost:3000');
 });
