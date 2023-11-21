@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
 io.on('connection', async (socket) => {
 
     // -> send messages
-    socket.on('chat', async (msg, username) => {
+    socket.on('send_chat', async (msg, username) => {
         let result;
         try {
             result = await db.run('INSERT INTO messages (content, username) VALUES (?, ?)', msg, username);
@@ -46,7 +46,7 @@ io.on('connection', async (socket) => {
             console.error('error on inserting message into database', e)
             return;
         }
-        io.emit('chat', msg, username, result.lastID);
+        io.emit('broadcast_chat', msg, username, result.lastID);
     });
 
     // -> load passed messages
@@ -55,7 +55,7 @@ io.on('connection', async (socket) => {
             await db.each('SELECT id, content, username FROM messages WHERE id > ?',
                 [socket.handshake.auth.serverOffset || 0],
                 (_err, row) => {
-                    socket.emit('chat', row.content, row.username, row.id);
+                    socket.emit('broadcast_chat', row.content, row.username, row.id);
                 }
             )
         } catch (e) {
