@@ -20,11 +20,21 @@ form.addEventListener('submit', (e) => {
     }
 });
 
+// -> create function to play sound on incoming message
+const playSound = (incoming_username) => {
+    console.log(incoming_username, username)
+    if (incoming_username === username) return;
+    const chime = new Audio('chime.mp3');
+    chime.play();
+}
+
 // -> do something on incoming chat message
 socket.on('broadcast_chat', (msg, username, serverOffset) => {
     const item = document.createElement('li');
     item.innerHTML = `<span class="name">${username}</span>${msg}`;
     messages.appendChild(item);
+    playSound(username);
     window.scrollTo(0, document.body.scrollHeight);
     socket.auth.serverOffset = serverOffset;
 });
+
