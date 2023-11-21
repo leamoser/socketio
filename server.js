@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 io.on('connection', async (socket) => {
     socket.on('send_chat', async (msg) => {
         // -> 3. send event back to frontend
-        io.emit('display_chat', msg);
+        io.emit('broadcast_chat', msg);
     });
 });
 

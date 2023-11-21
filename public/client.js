@@ -16,7 +16,7 @@ form.addEventListener('submit', (e) => {
 });
 
 // -> 4. listen if message processed by backend
-socket.on('display_chat', (msg) => {
+socket.on('broadcast_chat', (msg) => {
     const item = document.createElement('li');
     item.innerText = msg;
     messages.appendChild(item);
